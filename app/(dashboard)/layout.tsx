@@ -1,6 +1,6 @@
 import React from "react"
 import { Navbar } from "./_components/navbar"
-import OrgSidebar from "./_components/org-sidebar"
+import { OrgSidebar } from "./_components/org-sidebar"
 import { Sidebar } from "./_components/sidebar"
 
 type DashboardLayoutProps = Readonly<{
