@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { CreateOrganization } from "@clerk/nextjs"
-import Image from "next/image"
+import { Empty } from "../../../components/empty"
 
 export function EmptyOrg() {
   return (
-    <div className="h-full flex flex-col items-center justify-center">
-      <Image src="/elements.svg" alt="Empty" height={200} width={200} />
-      <h2 className="text-2xl font-semibold mt-6">Welcome to board</h2>
-      <p className="text-muted-foreground text-sm mt-2">
-        create an organization to get started
-      </p>
+    <Empty
+      src="/elements.jpg"
+      header="Welcome to board"
+      alt="empty organization"
+      description="create an organization to get started"
+    >
       <div className="mt-6">
         <Dialog>
           <DialogTrigger>
@@ -21,6 +21,6 @@ export function EmptyOrg() {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </Empty>
   )
 }
