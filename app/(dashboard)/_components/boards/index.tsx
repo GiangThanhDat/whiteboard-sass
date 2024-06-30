@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api"
 import { useApiMutation } from "@/hooks/use-api-mutation"
 import { BoardCard } from "./board-card"
 import { NewBoardButton } from "./new-board-button"
+import { useRouter } from "next/navigation"
 
 type BoardsProps = {
   orgId: string
@@ -18,9 +19,14 @@ type BoardsProps = {
 }
 
 export function Boards({ orgId, query }: BoardsProps) {
+  const router = useRouter()
   const { organization } = useOrganization()
 
-  const data = useQuery(api.boards.get, { orgId })
+  const data = useQuery(api.boards.get, {
+    orgId,
+    search: query.search,
+    favorites: query.favorites,
+  })
   const [create, pending] = useApiMutation(api.board.create)
 
   const onClick = () => {
@@ -34,13 +40,25 @@ export function Boards({ orgId, query }: BoardsProps) {
     })
       .then((id) => {
         toast.success("Board created")
-        // TODO: redirect to board/{id}
+        router.push(`board/${id}`)
       })
       .catch(() => toast.error("Failed to create board!"))
   }
 
   if (data === undefined) {
-    return <div className="">loading...</div>
+    return (
+      <div className="">
+        <h2 className="text-3xl">
+          {query.favorites ? "Favorite boards" : "Team boards"}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-5 mt-8 pb-10">
+          <NewBoardButton orgId={orgId} disabled />
+          <BoardCard.Skeleton />
+          <BoardCard.Skeleton />
+          <BoardCard.Skeleton />
+        </div>
+      </div>
+    )
   }
 
   if (!data?.length && query.search) {
@@ -84,7 +102,7 @@ export function Boards({ orgId, query }: BoardsProps) {
 
   return (
     <div className="">
-      <h2 className="text-2xl">
+      <h2 className="text-3xl">
         {query.favorites ? "Favorite boards" : "Team boards"}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-5 mt-8 pb-10">
@@ -100,7 +118,7 @@ export function Boards({ orgId, query }: BoardsProps) {
               authorName={board.authorName}
               createAt={board._creationTime}
               orgId={board.orgId}
-              isFavorite={true}
+              isFavorite={board.isFavorite}
             />
           )
         })}
