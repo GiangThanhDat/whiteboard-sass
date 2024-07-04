@@ -24,6 +24,7 @@ export function Room({
         id={roomId}
         initialPresence={{
           cursor: null,
+          selection: [],
         }}
         initialStorage={{
           layers: new LiveMap<string, LiveObject<Layer>>(),

@@ -1,6 +1,6 @@
 "use client"
 
-import { UserAvatar } from "@/app/board/[boardId]/_components/user-avatar"
+import { UserAvatar } from "@/app/board/[boardId]/_components/participants/user-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { connectionIdToColor } from "@/lib/utils"
 import { useOthers, useSelf } from "@liveblocks/react/suspense"

@@ -1,4 +1,3 @@
-import { Skeleton } from "@/components/ui/skeleton"
 import { CanvasMode, CanvasState, LayerType } from "@/types/canvans"
 import {
   ArrowLeft,
@@ -10,6 +9,8 @@ import {
   StickyNote,
   Type,
 } from "lucide-react"
+
+import { Skeleton } from "@/components/ui/skeleton"
 import { ToolButton } from "./tool-button"
 
 type ToolbarProps = {
