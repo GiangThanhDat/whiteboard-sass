@@ -27,6 +27,7 @@ import { CursorsPresence } from "./cursors-presence"
 import { Info } from "./info"
 import { LayerPreview } from "./layer-preview"
 import { Participants } from "./participants"
+import { SelectionBox } from "./selection-box"
 import { Toolbar } from "./toolbar"
 
 type CanvasProps = {
@@ -198,6 +199,7 @@ export function Canvas({ boardId }: CanvasProps) {
               selectionColor={layerIdsToColorSelection[layerId]}
             />
           ))}
+          <SelectionBox onResizeHandlePointerDown={() => {}} />
           <CursorsPresence />
         </g>
       </svg>

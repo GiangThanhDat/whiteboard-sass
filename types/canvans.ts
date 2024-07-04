@@ -11,7 +11,7 @@ export type Point = {
 
 export type Camera = Point
 
-type XYWH = Point & {
+export type XYWH = Point & {
   width: number
   height: number
 }
@@ -38,7 +38,7 @@ export type EllipseLayer = {
 } & LayerProps
 
 export type PathLayer = {
-  type: LayerType.ELLIPSE
+  type: LayerType.PATH
   points: number[][]
 } & LayerProps
 
