@@ -80,10 +80,10 @@ export type CanvasState =
     }
   | {
       mode: CanvasMode.PENCIL
-      // origin: Point
     }
   | {
       mode: CanvasMode.PRESSING
+      origin: Point
     }
   | {
       mode: CanvasMode.RESIZING
