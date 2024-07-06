@@ -2,6 +2,7 @@
 
 import {
   connectionIdToColor,
+  finIntersectingLayersWithRectangle,
   pointerEventToCanvasPoint,
   resizeBounds,
 } from "@/lib/utils"
@@ -104,8 +105,8 @@ export function Canvas({ boardId }: CanvasProps) {
       }
 
       const offset = {
-        x: point.x - (canvasState?.current?.x ?? 0),
-        y: point.y - (canvasState?.current?.y ?? 0),
+        x: point.x - canvasState?.current.x,
+        y: point.y - canvasState?.current.y,
       }
 
       const liveLayers = storage.get("layers")
@@ -131,6 +132,38 @@ export function Canvas({ boardId }: CanvasProps) {
       setMyPresence({ selection: [] }, { addToHistory: true })
     }
   }, [])
+
+  const startMultiSelection = useCallback((current: Point, origin: Point) => {
+    if (Math.abs(current.x - origin.x) + Math.abs(current.y - origin.y) > 5) {
+      setCanvasState({
+        mode: CanvasMode.SELECTION_NET,
+        origin,
+        current,
+      })
+    }
+  }, [])
+
+  const updateSelectionNet = useMutation(
+    ({ storage, setMyPresence }, current: Point, origin: Point) => {
+      const layers = storage.get("layers").toImmutable()
+
+      setCanvasState({
+        mode: CanvasMode.SELECTION_NET,
+        origin,
+        current,
+      })
+
+      const ids = finIntersectingLayersWithRectangle(
+        layerIds,
+        layers,
+        origin,
+        current
+      )
+
+      setMyPresence({ selection: ids })
+    },
+    [layerIds]
+  )
 
   const resizeSelectedLayer = useMutation(
     ({ storage, self }, point: Point) => {
@@ -178,7 +211,11 @@ export function Canvas({ boardId }: CanvasProps) {
       e.preventDefault()
       const current = pointerEventToCanvasPoint(e, camera)
 
-      if (canvasState.mode === CanvasMode.TRANSLATING) {
+      if (canvasState.mode === CanvasMode.PRESSING) {
+        startMultiSelection(current, canvasState.origin)
+      } else if (canvasState.mode === CanvasMode.SELECTION_NET) {
+        updateSelectionNet(current, canvasState.origin)
+      } else if (canvasState.mode === CanvasMode.TRANSLATING) {
         translateSelectedLayers(current)
       } else if (canvasState.mode === CanvasMode.RESIZING) {
         resizeSelectedLayer(current)
@@ -186,7 +223,14 @@ export function Canvas({ boardId }: CanvasProps) {
 
       setMyPresence({ cursor: current })
     },
-    [camera, canvasState, resizeSelectedLayer, translateSelectedLayers]
+    [
+      camera,
+      canvasState,
+      resizeSelectedLayer,
+      startMultiSelection,
+      updateSelectionNet,
+      translateSelectedLayers,
+    ]
   )
 
   const onPointerLeave = useMutation(({ setMyPresence }) => {
@@ -307,6 +351,16 @@ export function Canvas({ boardId }: CanvasProps) {
             />
           ))}
           <SelectionBox onResizeHandlePointerDown={onResizeHandlePointerDown} />
+          {canvasState.mode === CanvasMode.SELECTION_NET &&
+            canvasState.current !== null && (
+              <rect
+                className="fill-blue-500/5 stroke-blue-500 stroke-1"
+                x={Math.min(canvasState.origin.x, canvasState.current.x)}
+                y={Math.min(canvasState.origin.y, canvasState.current.y)}
+                width={Math.abs(canvasState.origin.x - canvasState.current.x)}
+                height={Math.abs(canvasState.origin.y - canvasState.current.y)}
+              />
+            )}
           <CursorsPresence />
         </g>
       </svg>

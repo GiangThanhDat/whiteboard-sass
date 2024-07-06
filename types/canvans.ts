@@ -64,11 +64,11 @@ export type CanvasState =
   | {
       mode: CanvasMode.SELECTION_NET
       origin: Point
-      current?: Point
+      current: Point
     }
   | {
       mode: CanvasMode.TRANSLATING
-      current?: Point
+      current: Point
     }
   | {
       mode: CanvasMode.INSERTING

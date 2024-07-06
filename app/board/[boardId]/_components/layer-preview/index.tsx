@@ -1,6 +1,7 @@
 import { LayerType } from "@/types/canvans"
 import { useStorage } from "@liveblocks/react/suspense"
 import { Rectangle } from "./rectangle"
+import { Ellipse } from "./ellipse"
 
 type LayerPreviewProps = {
   id: string
@@ -22,6 +23,15 @@ export function LayerPreview({
     case LayerType.RECTANGLE:
       return (
         <Rectangle
+          id={id}
+          layer={layer}
+          onPointerDown={onLayerPointerDown}
+          selectionColor={selectionColor}
+        />
+      )
+    case LayerType.ELLIPSE:
+      return (
+        <Ellipse
           id={id}
           layer={layer}
           onPointerDown={onLayerPointerDown}
