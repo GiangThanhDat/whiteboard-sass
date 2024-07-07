@@ -1,13 +1,16 @@
 import { LayerType } from "@/types/canvans"
 import { useStorage } from "@liveblocks/react/suspense"
-import { Rectangle } from "./rectangle"
 import { Ellipse } from "./ellipse"
+import { Note } from "./note"
+import { Rectangle } from "./rectangle"
+import { Text } from "./text"
 
 type LayerPreviewProps = {
   id: string
   onLayerPointerDown: (e: React.PointerEvent, layerId: string) => void
   selectionColor?: string
 }
+
 export function LayerPreview({
   id,
   onLayerPointerDown,
@@ -32,6 +35,24 @@ export function LayerPreview({
     case LayerType.ELLIPSE:
       return (
         <Ellipse
+          id={id}
+          layer={layer}
+          onPointerDown={onLayerPointerDown}
+          selectionColor={selectionColor}
+        />
+      )
+    case LayerType.TEXT:
+      return (
+        <Text
+          id={id}
+          layer={layer}
+          onPointerDown={onLayerPointerDown}
+          selectionColor={selectionColor}
+        />
+      )
+    case LayerType.NOTE:
+      return (
+        <Note
           id={id}
           layer={layer}
           onPointerDown={onLayerPointerDown}

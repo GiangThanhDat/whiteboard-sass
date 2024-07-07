@@ -91,3 +91,21 @@ export function finIntersectingLayersWithRectangle(
 
   return ids
 }
+
+export function getContrastingTextColor(color: Color) {
+  const luminance = 0.229 * (color.r + 0.587 * color.g + 0.114 + color.b)
+
+  return luminance > 182 ? "black" : "white"
+}
+
+export function calculateFontSize(
+  width: number,
+  height: number,
+  scaleFactor: number = 0.15
+) {
+  const maxFontSize = 96
+  const fontSizeBasedOnHeight = height * scaleFactor
+  const fontSizeBasedOnWidth = width * scaleFactor
+
+  return Math.min(fontSizeBasedOnHeight, fontSizeBasedOnWidth, maxFontSize)
+}
