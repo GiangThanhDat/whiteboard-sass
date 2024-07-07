@@ -3,6 +3,7 @@
 import {
   connectionIdToColor,
   finIntersectingLayersWithRectangle,
+  penPointsToPathLayer,
   pointerEventToCanvasPoint,
   resizeBounds,
 } from "@/lib/utils"
@@ -28,7 +29,7 @@ import {
   useStorage,
 } from "@liveblocks/react/suspense"
 import { nanoid } from "nanoid"
-import { useCallback, useMemo, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 
 import { CursorsPresence } from "./cursors-presence"
 import { Info } from "./info"
@@ -165,6 +166,70 @@ export function Canvas({ boardId }: CanvasProps) {
     [layerIds]
   )
 
+  const continueDrawing = useMutation(
+    ({ self, setMyPresence }, point: Point, e: React.PointerEvent) => {
+      const { pencilDraft } = self.presence
+
+      if (
+        canvasState.mode !== CanvasMode.PENCIL ||
+        e.button !== 1 ||
+        pencilDraft == null
+      ) {
+        return
+      }
+
+      setMyPresence({
+        cursor: point,
+        pencilDraft:
+          pencilDraft.length === 1 &&
+          pencilDraft[0][0] === point.x &&
+          pencilDraft[0][1] === point.y
+            ? pencilDraft
+            : [...pencilDraft, [point.x, point.y, e.pressure]],
+      })
+    },
+    [canvasState.mode]
+  )
+
+  const startDrawing = useMutation(
+    ({ setMyPresence }, point: Point, pressure: number) => {
+      setMyPresence({
+        pencilDraft: [[point.x, point.y, pressure]],
+        penColor: lastUsedColor,
+      })
+    },
+    [lastUsedColor]
+  )
+
+  const insertPath = useMutation(
+    ({ storage, self, setMyPresence }) => {
+      const liveLayers = storage.get("layers")
+      const { pencilDraft } = self.presence
+
+      if (
+        pencilDraft == null ||
+        pencilDraft.length < 2 ||
+        liveLayers.size >= MAX_LAYERS
+      ) {
+        setMyPresence({ pencilDraft: null })
+      }
+
+      const id = nanoid()
+      const newPathLayer = new LiveObject(
+        penPointsToPathLayer(pencilDraft, lastUsedColor)
+      )
+
+      liveLayers.set(id, newPathLayer)
+
+      const liveLayerIds = storage.get("layerIds")
+      liveLayerIds.push(id)
+
+      setMyPresence({ pencilDraft: null })
+      setCanvasState({ mode: CanvasMode.PENCIL })
+    },
+    [lastUsedColor]
+  )
+
   const resizeSelectedLayer = useMutation(
     ({ storage, self }, point: Point) => {
       if (canvasState.mode !== CanvasMode.RESIZING) {
@@ -219,6 +284,8 @@ export function Canvas({ boardId }: CanvasProps) {
         translateSelectedLayers(current)
       } else if (canvasState.mode === CanvasMode.RESIZING) {
         resizeSelectedLayer(current)
+      } else if (canvasState.mode === CanvasMode.PENCIL) {
+        continueDrawing(current, e)
       }
 
       setMyPresence({ cursor: current })
@@ -230,6 +297,7 @@ export function Canvas({ boardId }: CanvasProps) {
       startMultiSelection,
       updateSelectionNet,
       translateSelectedLayers,
+      continueDrawing,
     ]
   )
 
@@ -246,9 +314,14 @@ export function Canvas({ boardId }: CanvasProps) {
       }
 
       // TODO: add case for drawing
+      if (canvasState.mode == CanvasMode.PENCIL) {
+        startDrawing(point, e.pressure)
+        return
+      }
+
       setCanvasState({ origin: point, mode: CanvasMode.PRESSING })
     },
-    [camera, canvasState.mode, setCanvasState]
+    [camera, canvasState.mode, setCanvasState, startDrawing]
   )
 
   const onPointerUp = useMutation(
@@ -263,6 +336,8 @@ export function Canvas({ boardId }: CanvasProps) {
         setCanvasState({
           mode: CanvasMode.NONE,
         })
+      } else if (canvasState.mode === CanvasMode.PENCIL) {
+        insertPath()
       } else if (canvasState.mode === CanvasMode.INSERTING) {
         insertLayer(canvasState.layerType, point)
       } else {
@@ -271,7 +346,7 @@ export function Canvas({ boardId }: CanvasProps) {
 
       history.resume()
     },
-    [camera, canvasState, history, insertLayer, unselectedLayers]
+    [camera, canvasState, history, insertLayer, unselectedLayers, insertPath]
   )
 
   const selections = useOthersMapped((other) => other.presence.selection)
