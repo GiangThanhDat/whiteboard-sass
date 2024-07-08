@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  colorToCss,
   connectionIdToColor,
   finIntersectingLayersWithRectangle,
   penPointsToPathLayer,
@@ -29,11 +30,13 @@ import {
   useStorage,
 } from "@liveblocks/react/suspense"
 import { nanoid } from "nanoid"
-import React, { useCallback, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 
+import { useDisableScrollBounce } from "@/hooks/use-disabled-scroll-bounce"
 import { CursorsPresence } from "./cursors-presence"
 import { Info } from "./info"
 import { LayerPreview } from "./layer-preview"
+import { Path } from "./layer-preview/path"
 import { Participants } from "./participants"
 import { SelectionBox } from "./selection-box"
 import { SelectionTools } from "./selection-tools"
@@ -46,9 +49,8 @@ type CanvasProps = {
 const MAX_LAYERS = 100
 
 export function Canvas({ boardId }: CanvasProps) {
-  const { name } = useSelf((me) => me.info)
-
   const layerIds = useStorage((root) => root.layerIds)
+  const pencilDraft = useSelf((me) => me.presence.pencilDraft)
 
   const [canvasState, setCanvasState] = useState<CanvasState>({
     mode: CanvasMode.NONE,
@@ -59,6 +61,8 @@ export function Canvas({ boardId }: CanvasProps) {
     g: 255,
     b: 255,
   })
+
+  useDisableScrollBounce()
 
   const history = useHistory()
   const canUndo = useCanUndo()
@@ -172,7 +176,7 @@ export function Canvas({ boardId }: CanvasProps) {
 
       if (
         canvasState.mode !== CanvasMode.PENCIL ||
-        e.button !== 1 ||
+        e.buttons !== 1 ||
         pencilDraft == null
       ) {
         return
@@ -388,6 +392,29 @@ export function Canvas({ boardId }: CanvasProps) {
     return layerIdsToColorSelection
   }, [selections])
 
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      switch (e.key) {
+        case "z": {
+          if (e.ctrlKey || e.metaKey) {
+            if (e.shiftKey) {
+              history.redo()
+            } else {
+              history.undo()
+            }
+            break
+          }
+        }
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown)
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [history])
+
   return (
     <main
       id="canvas"
@@ -437,6 +464,14 @@ export function Canvas({ boardId }: CanvasProps) {
               />
             )}
           <CursorsPresence />
+          {pencilDraft != null && pencilDraft.length > 0 && (
+            <Path
+              x={0}
+              y={0}
+              points={pencilDraft}
+              fill={colorToCss(lastUsedColor)}
+            />
+          )}
         </g>
       </svg>
     </main>
