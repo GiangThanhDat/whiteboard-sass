@@ -397,11 +397,13 @@ export function Canvas({ boardId }: CanvasProps) {
       switch (e.key) {
         case "z": {
           if (e.ctrlKey || e.metaKey) {
-            if (e.shiftKey) {
-              history.redo()
-            } else {
-              history.undo()
-            }
+            history.undo()
+            break
+          }
+        }
+        case "y": {
+          if (e.ctrlKey || e.metaKey) {
+            history.redo()
             break
           }
         }
