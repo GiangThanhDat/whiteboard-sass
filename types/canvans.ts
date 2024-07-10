@@ -71,6 +71,10 @@ export type CanvasState =
       current: Point
     }
   | {
+      mode: CanvasMode.PANNING
+      current: Point | null
+    }
+  | {
       mode: CanvasMode.INSERTING
       layerType:
         | LayerType.ELLIPSE
@@ -99,6 +103,7 @@ export enum CanvasMode {
   INSERTING,
   RESIZING,
   PENCIL,
+  PANNING,
 }
 
 export type Layer =

@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Circle,
+  Hand,
   MousePointer2,
   Pencil,
   Square,
@@ -113,6 +114,14 @@ export function Toolbar({
         />
       </div>
       <div className="bg-white rounded-md p-1.5 flex flex-col items-center shadow-md">
+        <ToolButton
+          label="Drag"
+          icon={Hand}
+          onClick={() => {
+            setCanvasState({ current: null, mode: CanvasMode.PANNING })
+          }}
+          isActive={canvasState.mode === CanvasMode.PANNING}
+        />
         <ToolButton
           label="Undo"
           icon={ArrowLeft}
