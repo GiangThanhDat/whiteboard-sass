@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  cn,
   colorToCss,
   connectionIdToColor,
   finIntersectingLayersWithRectangle,
@@ -102,6 +103,26 @@ export function Canvas({ boardId }: CanvasProps) {
     },
     [lastUsedColor]
   )
+
+  const panCamera = (point: Point) => {
+    if (canvasState.mode !== CanvasMode.PANNING) {
+      return
+    }
+
+    if (canvasState.current) {
+      const offset = {
+        x: point.x - canvasState?.current.x,
+        y: point.y - canvasState?.current.y,
+      }
+
+      setCamera((camera) => ({
+        x: camera.x + offset.x,
+        y: camera.y + offset.y,
+      }))
+
+      setCanvasState({ mode: CanvasMode.PANNING, current: point })
+    }
+  }
 
   const translateSelectedLayers = useMutation(
     ({ storage, self }, point: Point) => {
@@ -284,6 +305,8 @@ export function Canvas({ boardId }: CanvasProps) {
         startMultiSelection(current, canvasState.origin)
       } else if (canvasState.mode === CanvasMode.SELECTION_NET) {
         updateSelectionNet(current, canvasState.origin)
+      } else if (canvasState.mode === CanvasMode.PANNING) {
+        panCamera(current)
       } else if (canvasState.mode === CanvasMode.TRANSLATING) {
         translateSelectedLayers(current)
       } else if (canvasState.mode === CanvasMode.RESIZING) {
@@ -323,6 +346,14 @@ export function Canvas({ boardId }: CanvasProps) {
         return
       }
 
+      if (canvasState.mode === CanvasMode.PANNING) {
+        setCanvasState({
+          current: point,
+          mode: CanvasMode.PANNING,
+        })
+        return
+      }
+
       setCanvasState({ origin: point, mode: CanvasMode.PRESSING })
     },
     [camera, canvasState.mode, setCanvasState, startDrawing]
@@ -344,6 +375,8 @@ export function Canvas({ boardId }: CanvasProps) {
         insertPath()
       } else if (canvasState.mode === CanvasMode.INSERTING) {
         insertLayer(canvasState.layerType, point)
+      } else if (canvasState.mode === CanvasMode.PANNING) {
+        setCanvasState({ mode: CanvasMode.PANNING, current: null })
       } else {
         setCanvasState({ mode: CanvasMode.NONE })
       }
@@ -394,6 +427,7 @@ export function Canvas({ boardId }: CanvasProps) {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      console.log(e.key)
       switch (e.key) {
         case "z": {
           if (e.ctrlKey || e.metaKey) {
@@ -407,6 +441,11 @@ export function Canvas({ boardId }: CanvasProps) {
             break
           }
         }
+        case "Escape": {
+          if (canvasState.mode === CanvasMode.PANNING) {
+            setCanvasState({ mode: CanvasMode.NONE })
+          }
+        }
       }
     }
 
@@ -415,12 +454,20 @@ export function Canvas({ boardId }: CanvasProps) {
     return () => {
       document.removeEventListener("keydown", onKeyDown)
     }
-  }, [history])
+  }, [canvasState.mode, history])
 
   return (
     <main
       id="canvas"
-      className="h-full w-full relative bg-neutral-100 touch-none "
+      className={cn(
+        "h-full w-full relative bg-neutral-100 touch-none",
+        canvasState.mode === CanvasMode.PANNING &&
+          canvasState.current &&
+          "hover:cursor-grabbing",
+        canvasState.mode === CanvasMode.PANNING &&
+          !canvasState.current &&
+          "hover:cursor-grab"
+      )}
     >
       <Info boardId={boardId} />
       <Participants />

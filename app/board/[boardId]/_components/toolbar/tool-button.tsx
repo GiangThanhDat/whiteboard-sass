@@ -1,11 +1,12 @@
 import { Hint } from "@/components/hint"
 import { Button } from "@/components/ui/button"
 import { LucideIcon } from "lucide-react"
+import { MouseEvent } from "react"
 
 type ToolButtonProps = {
   label: string
   icon: LucideIcon
-  onClick: () => void
+  onClick: (e?: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>) => void
   isActive?: boolean
   isDisabled?: boolean
 }
@@ -21,8 +22,8 @@ export function ToolButton({
   return (
     <Hint label={label} side="right" sideOffset={14}>
       <Button
-        disabled={isDisabled}
         size="icon"
+        disabled={isDisabled}
         onClick={onClick}
         variant={isActive ? "boardActive" : "board"}
       >
