@@ -57,9 +57,9 @@ export function Canvas({ boardId }: CanvasProps) {
   })
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0 })
   const [lastUsedColor, setLastUsedColor] = useState<Color>({
-    r: 255,
-    g: 255,
-    b: 255,
+    r: 0,
+    g: 0,
+    b: 0,
   })
 
   useDisableScrollBounce()
